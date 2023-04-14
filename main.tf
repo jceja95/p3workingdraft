@@ -85,8 +85,18 @@ resource "aws_route_table" "jd-rt-private" {
     }
 }
 
-resource "aws_iam_policy" "vpc-endpoint-policy" {
-  name = "vpc-endpoint-policy"
+resource "aws_vpc_endpoint" "s3" {
+    vpc_id = aws_vpc.jd-vpc-test.id
+    service_name = "com.amazonaws.us-east-1.s3"
+    vpc_endpoint_type = "Gateway"
+    tags = {
+        Name = "${var.default_tags.env}-S3-Endpoint"
+    }
+
+}
+
+resource "aws_vpc_endpoint_policy" "s3-endpoint-policy" {
+  vpc_endpoint_id = aws_vpc_endpoint.s3.id
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -100,23 +110,11 @@ resource "aws_iam_policy" "vpc-endpoint-policy" {
                 ],
                 "AWS": "arn:aws:sts::782863115905:assumed-role/AWSReservedSSO_Student_eee820b53800ca7b/jason.m.doyle1@gmail.com"
             },
-            "Action": "sts:AssumeRole"
+            "Action": "*"
         }
     ]
 })
 }
-
-resource "aws_vpc_endpoint" "s3" {
-    vpc_id = aws_vpc.jd-vpc-test.id
-    service_name = "com.amazonaws.us-east-1.s3"
-    policy = aws_iam_policy.vpc-endpoint-policy.id
-    vpc_endpoint_type = "Gateway"
-    tags = {
-        Name = "${var.default_tags.env}-S3-Endpoint"
-    }
-
-}
-
 resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-main-route-association" {
  route_table_id = aws_default_route_table.jd-rt-main.id
  vpc_endpoint_id = aws_vpc_endpoint.s3.id
@@ -187,6 +185,17 @@ resource "aws_security_group" "jd-elb-sg" {
      ]
 }
 
+resource "aws_security_group_rule" "alb-443-inbound" {
+  security_group_id = aws_security_group.jd-elb-sg.id
+    type = "ingress"
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    depends_on = [
+      aws_default_security_group.default
+    ]
+}
 resource "aws_default_security_group" "default" {
     vpc_id = aws_vpc.jd-vpc-test.id
     ingress {
@@ -295,7 +304,28 @@ resource "aws_security_group_rule" "ec2-80-main-ingress" {
     source_security_group_id = aws_default_security_group.default.id
 }
 
+resource "aws_security_group_rule" "ec2-443-alb-ingress" {
+    description = "443 ingress for ec2 from alb"
+    security_group_id = aws_security_group.jd-ec2-sg.id
+    type = "ingress"
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    source_security_group_id = aws_security_group.jd-elb-sg.id
+}
+
+resource "aws_security_group_rule" "ec2-443-main-ingress" {
+    description = "443 from main sg to ec2"
+    security_group_id = aws_security_group.jd-ec2-sg.id
+    type = "ingress"
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    source_security_group_id = aws_default_security_group.default.id
+}
+
 resource "aws_security_group_rule" "ec2-80-main-egress" {
+  description = "inbound from default SG to ec2 port 80"
    security_group_id = aws_default_security_group.default.id
     type = "egress"
     from_port = 80
@@ -304,15 +334,27 @@ resource "aws_security_group_rule" "ec2-80-main-egress" {
     source_security_group_id = aws_security_group.jd-ec2-sg.id    
 }
 
+
 resource "aws_security_group_rule" "elb-sg-to-ec2-rule" {
     type = "egress"
-    description = "outbound port 80 to EC2"
+    description = "outbound port 80 from alb to EC2"
     security_group_id = aws_security_group.jd-elb-sg.id
     from_port = 80
     to_port = 80
     protocol = "tcp"
     source_security_group_id = aws_security_group.jd-ec2-sg.id
 }
+
+resource "aws_security_group_rule" "elb-sg-to-ec2-443-rule" {
+    type = "egress"
+    description = "outbound port 443 from alb to EC2"
+    security_group_id = aws_security_group.jd-elb-sg.id
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    source_security_group_id = aws_security_group.jd-ec2-sg.id
+}
+
 
 
 

@@ -30,10 +30,13 @@ depends_on = [
 ]
 }
 
-resource "aws_s3_object" "index-file" {
+
+
+resource "aws_s3_object" "s3-objects" {
+   for_each = fileset("./s3-files/", "**")
     bucket = aws_s3_bucket.bboys-jd-test.id
-    source = "index.html"
-    key = "index.html"
+    key = each.value
+    source = "./s3-files/${each.value}"
     depends_on = [
       aws_s3_bucket_policy.jd-s3-bucket-policy
     ]
@@ -51,6 +54,8 @@ resource "aws_s3_bucket_public_access_block" "example" {
 resource "aws_kms_key" "bboys-s3-key" {
   description = "key for bboys s3 sse"
   deletion_window_in_days = 30
+  enable_key_rotation = "true"
+
   
 }
 

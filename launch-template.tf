@@ -27,6 +27,6 @@ resource "aws_launch_template" "jd-ec2-launch-template" {
     depends_on = [
       aws_security_group.jd-ec2-sg,
       aws_iam_role.jd-iam-terraform-role,
-      aws_s3_object.index-file
+      aws_s3_object.s3-objects
     ]
 }

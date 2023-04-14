@@ -14,8 +14,8 @@ resource "aws_lb" "jd-alb" {
 
 resource "aws_lb_target_group" "ec2-tg" {
     name = "jd-ec2-tg"
-    port = 80
-    protocol = "HTTP"
+    port = 443
+    protocol = "HTTPS"
     target_type = "instance"
     vpc_id = aws_vpc.jd-vpc-test.id
     health_check {
@@ -34,14 +34,19 @@ resource "aws_lb_target_group" "ec2-tg" {
 
 }
 
-resource "aws_lb_listener" "jd-80-listener" {
+resource "aws_lb_listener" "jd-443-listener" {
     load_balancer_arn = aws_lb.jd-alb.arn
-    port = "80"
-    protocol = "HTTP"
-    default_action {
+    port = "443"
+    protocol = "HTTPS"
+    certificate_arn = aws_iam_server_certificate.alb-cert.arn
+     default_action {
       type = "forward"
       target_group_arn = aws_lb_target_group.ec2-tg.arn
         }
+        depends_on = [
+          aws_lb.jd-alb,
+          aws_iam_server_certificate.alb-cert
+        ]
 }
 
 resource "aws_autoscaling_group" "jd-asg" {
@@ -64,4 +69,10 @@ depends_on = [
     aws_launch_template.jd-ec2-launch-template
 
 ]
+}
+
+resource "aws_lb_listener_certificate" "alb-cert" {
+    listener_arn = aws_lb_listener.jd-443-listener.arn
+    certificate_arn = aws_iam_server_certificate.alb-cert.arn
+  
 }
