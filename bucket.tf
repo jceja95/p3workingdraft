@@ -54,9 +54,8 @@ resource "aws_s3_bucket_public_access_block" "example" {
 resource "aws_kms_key" "bboys-s3-key" {
   description = "key for bboys s3 sse"
   deletion_window_in_days = 30
-  enable_key_rotation = "true"
-
-  
+  enable_key_rotation = true
+ 
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-config" {
