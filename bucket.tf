@@ -58,6 +58,28 @@ resource "aws_kms_key" "bboys-s3-key" {
  
 }
 
+resource "aws_kms_key_policy" "bboys-s3-key-policy" {
+    key_id = aws_kms_key.bboys-s3-key.id
+    policy = jsonencode({
+    "Version": "2012-10-17",
+    "Id": "key-default-1",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "kms:*",
+            "Resource": "*"
+        }
+    ]
+})
+depends_on = [
+  aws_s3_bucket.bboys-jd-test,
+  aws_kms_key.bboys-s3-key
+
+]
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-config" {
   bucket = aws_s3_bucket.bboys-jd-test.id
   rule  {
@@ -72,4 +94,7 @@ resource "aws_s3_bucket_logging" "s3-bucket-logging" {
     bucket = aws_s3_bucket.bboys-jd-test.id
     target_bucket = aws_s3_bucket.bboys-jd-test.id
     target_prefix = "log/"
+    depends_on = [
+      aws_s3_bucket.bboys-jd-test
+    ]
 }

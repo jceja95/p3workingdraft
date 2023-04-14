@@ -98,21 +98,15 @@ resource "aws_vpc_endpoint" "s3" {
 resource "aws_vpc_endpoint_policy" "s3-endpoint-policy" {
   vpc_endpoint_id = aws_vpc_endpoint.s3.id
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Service": [
-                    "lambda.amazonaws.com",
-                    "apigateway.amazonaws.com",
-                    "ec2.amazonaws.com"
-                ],
-                "AWS": "arn:aws:sts::782863115905:assumed-role/AWSReservedSSO_Student_eee820b53800ca7b/jason.m.doyle1@gmail.com"
-            },
-            "Action": "*"
-        }
-    ]
+	"Version": "2008-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": "*",
+			"Action": "*",
+			"Resource": "*"
+		}
+	]
 })
 }
 resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-main-route-association" {
@@ -220,16 +214,7 @@ resource "aws_default_security_group" "default" {
 
 
 
-resource "aws_security_group_rule" "main-sg-443-s3-egress" {
-  security_group_id = aws_default_security_group.default.id
-  description = "443 s3 outbound managed prefix"
-  type = "egress"
-  to_port = "443"
-  from_port = "443"
-  protocol = "tcp"
-  prefix_list_ids = [data.aws_prefix_list.s3.id]
 
-}
 
 resource "aws_security_group" "jd-ec2-sg" {
     vpc_id = aws_vpc.jd-vpc-test.id
