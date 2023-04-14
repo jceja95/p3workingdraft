@@ -163,9 +163,9 @@ resource "aws_security_group" "jd-elb-sg" {
     vpc_id = aws_vpc.jd-vpc-test.id
     description = "security group for elb"
     ingress = [ {
-      description = "allow all internet 80"
-      from_port = 80
-      to_port = 80
+      description = "allow all internet 443"
+      from_port = 443
+      to_port = 443
       protocol = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
       ipv6_cidr_blocks = []
@@ -185,17 +185,7 @@ resource "aws_security_group" "jd-elb-sg" {
      ]
 }
 
-resource "aws_security_group_rule" "alb-443-inbound" {
-  security_group_id = aws_security_group.jd-elb-sg.id
-    type = "ingress"
-    from_port = 443
-    to_port = 443
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    depends_on = [
-      aws_default_security_group.default
-    ]
-}
+
 resource "aws_default_security_group" "default" {
     vpc_id = aws_vpc.jd-vpc-test.id
     ingress {
@@ -226,17 +216,7 @@ resource "aws_default_security_group" "default" {
     
 }
 
-resource "aws_security_group_rule" "main-sg-ssh-ingress" {
-  security_group_id = aws_default_security_group.default.id
-    type = "ingress"
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    depends_on = [
-      aws_default_security_group.default
-    ]
-}
+
 
 resource "aws_security_group_rule" "main-sg-80-s3-egress"{
   security_group_id = aws_default_security_group.default.id
