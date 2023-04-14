@@ -85,9 +85,31 @@ resource "aws_route_table" "jd-rt-private" {
     }
 }
 
+resource "aws_iam_policy" "vpc-endpoint-policy" {
+  name = "vpc-endpoint-policy"
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "lambda.amazonaws.com",
+                    "apigateway.amazonaws.com",
+                    "ec2.amazonaws.com"
+                ],
+                "AWS": "arn:aws:sts::782863115905:assumed-role/AWSReservedSSO_Student_eee820b53800ca7b/jason.m.doyle1@gmail.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+})
+}
+
 resource "aws_vpc_endpoint" "s3" {
     vpc_id = aws_vpc.jd-vpc-test.id
     service_name = "com.amazonaws.us-east-1.s3"
+    policy = aws_iam_policy.vpc-endpoint-policy.id
     vpc_endpoint_type = "Gateway"
     tags = {
         Name = "${var.default_tags.env}-S3-Endpoint"
@@ -113,6 +135,8 @@ resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-private-route-a
  ]
 }
 
+
+
 resource "aws_route_table_association" "public-subnet-route-table-associaiton" {
     count = length(aws_subnet.public)
     route_table_id = aws_default_route_table.jd-rt-main.id
@@ -135,6 +159,7 @@ resource "aws_route_table_association" "private-subnet-route-table-association" 
    aws_subnet.private
  ]
 }
+
 
 resource "aws_security_group" "jd-elb-sg" {
     vpc_id = aws_vpc.jd-vpc-test.id
@@ -288,8 +313,6 @@ resource "aws_security_group_rule" "elb-sg-to-ec2-rule" {
     protocol = "tcp"
     source_security_group_id = aws_security_group.jd-ec2-sg.id
 }
-
-
 
 
 

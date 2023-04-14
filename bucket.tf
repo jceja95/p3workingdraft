@@ -6,18 +6,6 @@ resource "aws_s3_bucket" "bboys-jd-test" {
     }
 }
 
-data "aws_iam_policy_document" "jd-s3-iam-policy" {
-    statement {
-        actions = ["s3:*"]
-        resources = [aws_s3_bucket.bboys-jd-test.id]
-        principals {
-          type = "AWS"
-          identifiers = ["arn:aws:iam::782863115905:role/jd-iam-terraform-role"]
-
-        }
-    }
-}
-
 resource "aws_s3_bucket_policy" "jd-s3-bucket-policy" {
     bucket = aws_s3_bucket.bboys-jd-test.id
     policy = <<EOF
@@ -49,4 +37,29 @@ resource "aws_s3_object" "index-file" {
     depends_on = [
       aws_s3_bucket_policy.jd-s3-bucket-policy
     ]
+}
+
+resource "aws_s3_bucket_public_access_block" "example" {
+    bucket = aws_s3_bucket.bboys-jd-test.id
+    block_public_acls = true
+    block_public_policy = true
+    ignore_public_acls = true
+    restrict_public_buckets = true
+        
+}
+
+resource "aws_kms_key" "bboys-s3-key" {
+  description = "key for bboys s3 sse"
+  deletion_window_in_days = 30
+  
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-config" {
+  bucket = aws_s3_bucket.bboys-jd-test.id
+  rule  {
+    apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.bboys-s3-key.arn
+        sse_algorithm = "aws:kms"
+    }
+  }
 }
