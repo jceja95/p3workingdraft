@@ -33,7 +33,7 @@ resource "aws_subnet" "public" {
     vpc_id = aws_vpc.jd-vpc-test.id
     cidr_block = cidrsubnet(aws_vpc.jd-vpc-test.cidr_block, 2, count.index)
     availability_zone = data.aws_availability_zones.name.names[count.index]
-    map_public_ip_on_launch = true
+    map_public_ip_on_launch = false
     enable_resource_name_dns_a_record_on_launch = true
     tags = {
         Name = "${var.default_tags.env}-public-${data.aws_availability_zones.name.names[count.index]}"
@@ -200,13 +200,13 @@ resource "aws_default_security_group" "default" {
       self = true
   }
   egress {
-      description = "allow 80 from anywyere"
-         from_port = 80
-      to_port = 80
+      description = "allow 443 outbound for s3"
+         from_port = 443
+      to_port = 443
       protocol = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = []
       ipv6_cidr_blocks = []
-      prefix_list_ids = []
+      prefix_list_ids = [data.aws_prefix_list.s3.id]
       security_groups = []
       self = true
   }
@@ -218,19 +218,7 @@ resource "aws_default_security_group" "default" {
 
 
 
-resource "aws_security_group_rule" "main-sg-80-s3-egress"{
-  security_group_id = aws_default_security_group.default.id
-  description = "80 s3 outbound managed prefix"
-  type = "egress"
-  from_port = 80
-  to_port = 80
-  protocol = "tcp"
-  prefix_list_ids = [data.aws_prefix_list.s3.id]
-  depends_on = [
-    aws_default_security_group.default
-  ]
 
-}
 
 resource "aws_security_group_rule" "main-sg-443-s3-egress" {
   security_group_id = aws_default_security_group.default.id

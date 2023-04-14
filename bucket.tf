@@ -67,3 +67,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-conf
     }
   }
 }
+
+resource "aws_s3_bucket_logging" "s3-bucket-logging" {
+    bucket = aws_s3_bucket.bboys-jd-test.id
+    target_bucket = aws_s3_bucket.bboys-jd-test.id
+    target_prefix = "log/"
+}

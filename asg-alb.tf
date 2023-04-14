@@ -5,7 +5,7 @@ resource "aws_lb" "jd-alb" {
     load_balancer_type = "application"
     security_groups = [aws_security_group.jd-elb-sg.id]
     subnets = [for subnet in aws_subnet.public : subnet.id ]
-    drop_invalid_header_fields = "true"
+    drop_invalid_header_fields = true
     
     tags = {
         Name = "${var.default_tags.env}-ALB"
