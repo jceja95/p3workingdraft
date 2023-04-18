@@ -20,7 +20,7 @@ resource "aws_s3_bucket_policy" "bboys-s3-bucket-policy" {
                 "AWS": "arn:aws:iam::782863115905:role/bboys-iam-terraform-role"
             },
             "Action": "s3:*",
-            "Resource": "arn:aws:s3:::bboys-jd-test/*"
+            "Resource": "arn:aws:s3:::bboys-test/*"
         }
     ]
     }
