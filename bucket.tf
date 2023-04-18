@@ -1,13 +1,13 @@
-resource "aws_s3_bucket" "bboys-jd-test" {
-    bucket = "bboys-jd-test"
+resource "aws_s3_bucket" "bboys-test" {
+    bucket = "bboys-test"
 
     tags = {
         Name = "${var.default_tags.env}-S3"
     }
 }
 
-resource "aws_s3_bucket_policy" "jd-s3-bucket-policy" {
-    bucket = aws_s3_bucket.bboys-jd-test.id
+resource "aws_s3_bucket_policy" "bboys-s3-bucket-policy" {
+    bucket = aws_s3_bucket.bboys-test.id
     policy = <<EOF
     {
         
@@ -17,7 +17,7 @@ resource "aws_s3_bucket_policy" "jd-s3-bucket-policy" {
             "Sid": "Public View",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::782863115905:role/jd-iam-terraform-role"
+                "AWS": "arn:aws:iam::782863115905:role/bboys-iam-terraform-role"
             },
             "Action": "s3:*",
             "Resource": "arn:aws:s3:::bboys-jd-test/*"
@@ -26,7 +26,7 @@ resource "aws_s3_bucket_policy" "jd-s3-bucket-policy" {
     }
     EOF
 depends_on = [
-  aws_iam_role_policy.jd-s3
+  aws_iam_role_policy.bboys-s3
 ]
 }
 
@@ -34,16 +34,16 @@ depends_on = [
 
 resource "aws_s3_object" "s3-objects" {
    for_each = fileset("./s3-files/", "**")
-    bucket = aws_s3_bucket.bboys-jd-test.id
+    bucket = aws_s3_bucket.bboys-test.id
     key = each.value
     source = "./s3-files/${each.value}"
     depends_on = [
-      aws_s3_bucket_policy.jd-s3-bucket-policy
+      aws_s3_bucket_policy.bboys-s3-bucket-policy
     ]
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
-    bucket = aws_s3_bucket.bboys-jd-test.id
+    bucket = aws_s3_bucket.bboys-test.id
     block_public_acls = true
     block_public_policy = true
     ignore_public_acls = true
@@ -74,14 +74,14 @@ resource "aws_kms_key_policy" "bboys-s3-key-policy" {
     ]
 })
 depends_on = [
-  aws_s3_bucket.bboys-jd-test,
+  aws_s3_bucket.bboys-test,
   aws_kms_key.bboys-s3-key
 
 ]
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-config" {
-  bucket = aws_s3_bucket.bboys-jd-test.id
+  bucket = aws_s3_bucket.bboys-test.id
   rule  {
     apply_server_side_encryption_by_default {
         kms_master_key_id = aws_kms_key.bboys-s3-key.arn
@@ -91,10 +91,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "bboys-s3-sse-conf
 }
 
 resource "aws_s3_bucket_logging" "s3-bucket-logging" {
-    bucket = aws_s3_bucket.bboys-jd-test.id
-    target_bucket = aws_s3_bucket.bboys-jd-test.id
+    bucket = aws_s3_bucket.bboys-test.id
+    target_bucket = aws_s3_bucket.bboys-test.id
     target_prefix = "log/"
     depends_on = [
-      aws_s3_bucket.bboys-jd-test
+      aws_s3_bucket.bboys-test
     ]
 }
