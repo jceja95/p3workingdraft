@@ -1,5 +1,5 @@
-resource "aws_iam_role" "jd-iam-terraform-role" {
-  name = "jd-iam-terraform-role"
+resource "aws_iam_role" "bboys-iam-terraform-role" {
+  name = "bboys-iam-terraform-role"
   assume_role_policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -19,9 +19,9 @@ resource "aws_iam_role" "jd-iam-terraform-role" {
 })
 }
 
-resource "aws_iam_role_policy" "jd-ec2"{
-  name = "jd-iam-policy-ec2"
-  role = aws_iam_role.jd-iam-terraform-role.id
+resource "aws_iam_role_policy" "bboys-ec2"{
+  name = "bboys-iam-policy-ec2"
+  role = aws_iam_role.bboys-iam-terraform-role.id
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -65,13 +65,13 @@ resource "aws_iam_role_policy" "jd-ec2"{
     ]
 })
 depends_on = [
-  aws_iam_role.jd-iam-terraform-role
+  aws_iam_role.bboys-iam-terraform-role
 ]
 }
 
-resource "aws_iam_role_policy" "jd-s3" {
-  name = "jd-iam-s3-permissions"
-  role = aws_iam_role.jd-iam-terraform-role.id
+resource "aws_iam_role_policy" "bboys-s3" {
+  name = "bboys-iam-s3-permissions"
+  role = aws_iam_role.bboys-iam-terraform-role.id
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -86,6 +86,6 @@ resource "aws_iam_role_policy" "jd-s3" {
     ]
 })
 depends_on = [
-  aws_iam_role.jd-iam-terraform-role
+  aws_iam_role.bboys-iam-terraform-role
 ]
 }

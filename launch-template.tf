@@ -1,5 +1,5 @@
 resource "aws_launch_template" "jd-ec2-launch-template" {
-    name = "jd-ec2-launch-template"
+    name = "bboys-ec2-launch-template"
     image_id = "ami-0fa1de1d60de6a97e"
     instance_type = "t3.micro"
     key_name = "Jason_D"
@@ -10,7 +10,7 @@ resource "aws_launch_template" "jd-ec2-launch-template" {
     market_type = "spot"    
     }
     network_interfaces {
-      security_groups = [aws_security_group.jd-ec2-sg.id]
+      security_groups = [aws_security_group.bboys-ec2-sg.id]
 
     }
     iam_instance_profile {
@@ -25,8 +25,8 @@ resource "aws_launch_template" "jd-ec2-launch-template" {
   }
     
     depends_on = [
-      aws_security_group.jd-ec2-sg,
-      aws_iam_role.jd-iam-terraform-role,
+      aws_security_group.bboys-ec2-sg,
+      aws_iam_role.bboys-iam-terraform-role,
       aws_s3_object.s3-objects
     ]
 }

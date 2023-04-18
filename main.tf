@@ -12,25 +12,25 @@ provider "aws" {
 
 
 
-resource "aws_vpc" "jd-vpc-test" {
+resource "aws_vpc" "bboys-vpc-test" {
     cidr_block = "10.1.0.0/24"
     enable_dns_support = "true"
     enable_dns_hostnames = "true"
     tags = {
-        name = "JD-VPC-test"
-        Name = "JD-VPC-test"
+        name = "bboys-VPC-test"
+        Name = "bboys-VPC-test"
     }
 }
 
 resource "aws_iam_instance_profile" "launch-template-role" {
-  name = "jd-launch-template-role"
-  role = aws_iam_role.jd-iam-terraform-role.id
+  name = "bboys-launch-template-role"
+  role = aws_iam_role.bboys-iam-terraform-role.id
 }
 
 
 resource "aws_subnet" "public" {
     count = 2
-    vpc_id = aws_vpc.jd-vpc-test.id
+    vpc_id = aws_vpc.bboys-vpc-test.id
     cidr_block = cidrsubnet(aws_vpc.jd-vpc-test.cidr_block, 2, count.index)
     availability_zone = data.aws_availability_zones.name.names[count.index]
     map_public_ip_on_launch = false
@@ -43,8 +43,8 @@ resource "aws_subnet" "public" {
 
 resource "aws_subnet" "private" {
    count = length(aws_subnet.public)
-   vpc_id = aws_vpc.jd-vpc-test.id
-    cidr_block = cidrsubnet(aws_vpc.jd-vpc-test.cidr_block, 2, count.index + 2)
+   vpc_id = aws_vpc.bboys-vpc-test.id
+    cidr_block = cidrsubnet(aws_vpc.bboys-vpc-test.cidr_block, 2, count.index + 2)
     availability_zone = aws_subnet.public[count.index].availability_zone
     map_public_ip_on_launch = false
     enable_resource_name_dns_a_record_on_launch = true
@@ -56,18 +56,18 @@ resource "aws_subnet" "private" {
             ]
 }
 
-resource "aws_internet_gateway" "jd-igw" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+resource "aws_internet_gateway" "bboys-igw" {
+    vpc_id = aws_vpc.bboys-vpc-test.id
     tags = {
         Name = "${var.default_tags.env}-IGW"
     }
 }
 
-resource "aws_default_route_table" "jd-rt-main" {
-    default_route_table_id = aws_vpc.jd-vpc-test.default_route_table_id
+resource "aws_default_route_table" "bboys-rt-main" {
+    default_route_table_id = aws_vpc.bboys-vpc-test.default_route_table_id
       route {
         cidr_block =  "0.0.0.0/0"
-        gateway_id = aws_internet_gateway.jd-igw.id
+        gateway_id = aws_internet_gateway.bboys-igw.id
     }
     tags = {
       "Name" = "${var.default_tags.env}-RT"
@@ -78,15 +78,15 @@ resource "aws_default_route_table" "jd-rt-main" {
     ]
 }
 
-resource "aws_route_table" "jd-rt-private" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+resource "aws_route_table" "bboys-rt-private" {
+    vpc_id = aws_vpc.bboys-vpc-test.id
     tags = {
         Name = "${var.default_tags.env}-private-RT"
     }
 }
 
 resource "aws_vpc_endpoint" "s3" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+    vpc_id = aws_vpc.bboys-vpc-test.id
     service_name = "com.amazonaws.us-east-1.s3"
     vpc_endpoint_type = "Gateway"
     tags = {
@@ -110,20 +110,20 @@ resource "aws_vpc_endpoint_policy" "s3-endpoint-policy" {
 })
 }
 resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-main-route-association" {
- route_table_id = aws_default_route_table.jd-rt-main.id
+ route_table_id = aws_default_route_table.bboys-rt-main.id
  vpc_endpoint_id = aws_vpc_endpoint.s3.id
  depends_on = [
    aws_vpc_endpoint.s3,
-   aws_default_route_table.jd-rt-main
+   aws_default_route_table.bboys-rt-main
  ]
 }
 
 resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-private-route-association" {
-    route_table_id = aws_route_table.jd-rt-private.id
+    route_table_id = aws_route_table.bboys-rt-private.id
     vpc_endpoint_id = aws_vpc_endpoint.s3.id
      depends_on = [
    aws_vpc_endpoint.s3,
-   aws_default_route_table.jd-rt-main
+   aws_default_route_table.bboys-rt-main
  ]
 }
 
@@ -131,11 +131,11 @@ resource "aws_vpc_endpoint_route_table_association" "s3-endpoint-private-route-a
 
 resource "aws_route_table_association" "public-subnet-route-table-associaiton" {
     count = length(aws_subnet.public)
-    route_table_id = aws_default_route_table.jd-rt-main.id
+    route_table_id = aws_default_route_table.bboys-rt-main.id
     subnet_id = aws_subnet.public[count.index].id
      depends_on = [
    aws_vpc_endpoint.s3,
-   aws_default_route_table.jd-rt-main,
+   aws_default_route_table.bboys-rt-main,
    aws_subnet.public
  ]
 }
@@ -143,18 +143,18 @@ resource "aws_route_table_association" "public-subnet-route-table-associaiton" {
 
 resource "aws_route_table_association" "private-subnet-route-table-association" {
     count = length(aws_subnet.private)
-    route_table_id = aws_route_table.jd-rt-private.id
+    route_table_id = aws_route_table.bboys-rt-private.id
     subnet_id = aws_subnet.private[count.index].id 
      depends_on = [
    aws_vpc_endpoint.s3,
-   aws_default_route_table.jd-rt-main,
+   aws_default_route_table.bboys-rt-main,
    aws_subnet.private
  ]
 }
 
 
-resource "aws_security_group" "jd-elb-sg" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+resource "aws_security_group" "bboys-elb-sg" {
+    vpc_id = aws_vpc.bboys-vpc-test.id
     description = "security group for elb"
     ingress = [ {
       description = "allow all internet 443"
@@ -172,7 +172,7 @@ resource "aws_security_group" "jd-elb-sg" {
         Name = "${var.default_tags.env}-ELB-SG"
      }
      depends_on = [
-       aws_vpc.jd-vpc-test,
+       aws_vpc.bboys-vpc-test,
        aws_subnet.private,
        aws_subnet.public
 
@@ -181,7 +181,7 @@ resource "aws_security_group" "jd-elb-sg" {
 
 
 resource "aws_default_security_group" "default" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+    vpc_id = aws_vpc.bboys-vpc-test.id
     ingress {
         description = "allow 80 from anywyere"
          from_port = 80
@@ -216,8 +216,8 @@ resource "aws_default_security_group" "default" {
 
 
 
-resource "aws_security_group" "jd-ec2-sg" {
-    vpc_id = aws_vpc.jd-vpc-test.id
+resource "aws_security_group" "bboys-ec2-sg" {
+    vpc_id = aws_vpc.bboys-vpc-test.id
     description = "secrutiy group for ec2s in private subnet"
   ingress = [{
 description = "allow all internet 80"
@@ -228,7 +228,7 @@ description = "allow all internet 80"
       cidr_blocks = []
       ipv6_cidr_blocks = []
       prefix_list_ids = []
-      security_groups = [aws_security_group.jd-elb-sg.id]
+      security_groups = [aws_security_group.bboys-elb-sg.id]
       self = true
   }]
   
@@ -249,7 +249,7 @@ description = "allow all internet 80"
 }
 
 resource "aws_security_group_rule" "ec2-80-main-ingress" {
-    security_group_id = aws_security_group.jd-ec2-sg.id
+    security_group_id = aws_security_group.bboys-ec2-sg.id
     type = "ingress"
     from_port = 80
     to_port = 80
@@ -259,17 +259,17 @@ resource "aws_security_group_rule" "ec2-80-main-ingress" {
 
 resource "aws_security_group_rule" "ec2-443-alb-ingress" {
     description = "443 ingress for ec2 from alb"
-    security_group_id = aws_security_group.jd-ec2-sg.id
+    security_group_id = aws_security_group.bboys-ec2-sg.id
     type = "ingress"
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    source_security_group_id = aws_security_group.jd-elb-sg.id
+    source_security_group_id = aws_security_group.bboys-elb-sg.id
 }
 
 resource "aws_security_group_rule" "ec2-443-main-ingress" {
     description = "443 from main sg to ec2"
-    security_group_id = aws_security_group.jd-ec2-sg.id
+    security_group_id = aws_security_group.bboys-ec2-sg.id
     type = "ingress"
     from_port = 443
     to_port = 443
@@ -284,28 +284,28 @@ resource "aws_security_group_rule" "ec2-80-main-egress" {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    source_security_group_id = aws_security_group.jd-ec2-sg.id    
+    source_security_group_id = aws_security_group.bboys-ec2-sg.id    
 }
 
 
 resource "aws_security_group_rule" "elb-sg-to-ec2-rule" {
     type = "egress"
     description = "outbound port 80 from alb to EC2"
-    security_group_id = aws_security_group.jd-elb-sg.id
+    security_group_id = aws_security_group.bboys-elb-sg.id
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    source_security_group_id = aws_security_group.jd-ec2-sg.id
+    source_security_group_id = aws_security_group.bboys-ec2-sg.id
 }
 
 resource "aws_security_group_rule" "elb-sg-to-ec2-443-rule" {
     type = "egress"
     description = "outbound port 443 from alb to EC2"
-    security_group_id = aws_security_group.jd-elb-sg.id
+    security_group_id = aws_security_group.bboys-elb-sg.id
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    source_security_group_id = aws_security_group.jd-ec2-sg.id
+    source_security_group_id = aws_security_group.bboys-ec2-sg.id
 }
 
 
