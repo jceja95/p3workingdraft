@@ -3,7 +3,7 @@ resource "aws_lb" "bboys-alb" {
     name = "bboys-alb"
     internal = "false"
     load_balancer_type = "application"
-    security_groups = [aws_security_group.jd-elb-sg.id]
+    security_groups = [aws_security_group.bboys-elb-sg.id]
     subnets = [for subnet in aws_subnet.public : subnet.id ]
     drop_invalid_header_fields = true
     
@@ -17,7 +17,7 @@ resource "aws_lb_target_group" "ec2-tg" {
     port = 443
     protocol = "HTTPS"
     target_type = "instance"
-    vpc_id = aws_vpc.bboys-vpc-test.id
+    vpc_id = aws_vpc.bboys-vpc.id
     health_check {
       enabled = "true"
       healthy_threshold = 2
@@ -50,7 +50,7 @@ resource "aws_lb_listener" "bboys-443-listener" {
 }
 
 resource "aws_autoscaling_group" "bboys-asg" {
-    name = "bboys-ASG"
+    name = "BBOYS-ASG"
     max_size = 2
     min_size = 2
     desired_capacity = 2

@@ -1,4 +1,4 @@
-resource "aws_launch_template" "jd-ec2-launch-template" {
+resource "aws_launch_template" "bboys-ec2-launch-template" {
     name = "bboys-ec2-launch-template"
     image_id = "ami-0fa1de1d60de6a97e"
     instance_type = "t3.micro"
