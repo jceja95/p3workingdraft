@@ -1,31 +1,27 @@
 pipeline {
-  agent { label 'linux'}
-  options {
-    skipDefaultCheckout(true)
-  }
-  stages{
-    stage('clean workspace') {
-      steps {
-        cleanWs()
-      }
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: '<CREDS>', url: 'https://github.com/jceja95/p3workingdraft'
+            }
+        }
+        stage('Terraform init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+        stage('Terraform plan') {
+            steps {
+                sh 'terraform plan'
+            }
+        }
+        stage('Terraform apply') {
+            steps {
+                sh 'terraform apply --auto-approve'
+            }
+        }
+        
     }
-    stage('checkout') {
-      steps {
-        checkout scm
-      }
-    }
-    }
-    stage('terraform') {
-      steps {
-        sh "chmod +x -R ${env.WORKSPACE}"
-        sh ('terraform init')
-        sh './terraformw apply -auto-approve -no-color'
-      }
-    }
-  }
-  post {
-    always {
-      cleanWs()
-    }
-  }
 }
