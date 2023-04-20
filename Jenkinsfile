@@ -14,14 +14,11 @@ pipeline {
         checkout scm
       }
     }
-    stage("terraform init") {
-      steps {
-        sh ('terraform init')
-      }
     }
     stage('terraform') {
       steps {
         sh "chmod +x -R ${env.WORKSPACE}"
+        sh 'terraform init'
         sh './terraformw apply -auto-approve -no-color'
       }
     }
