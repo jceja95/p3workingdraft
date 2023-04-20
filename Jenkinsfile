@@ -14,6 +14,11 @@ pipeline {
         checkout scm
       }
     }
+    stage("terraform init") {
+      steps {
+        sh ('terraform init')
+      }
+    }
     stage('terraform') {
       steps {
         sh "chmod +x -R ${env.WORKSPACE}"
